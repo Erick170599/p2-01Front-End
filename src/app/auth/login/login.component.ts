@@ -35,32 +35,36 @@ export class LoginComponent implements OnInit {
   }
 
   login() {
-    this.usuarioService.login(this.loginForm.value).subscribe((resp: any) => {
-      if (resp.status) {
-        if (this.loginForm.get('remember').value) {
-          localStorage.setItem('email', this.loginForm.get('email').value);
-        } else {
-          localStorage.setItem('', this.loginForm.get('email').value);
-        }
-        Swal.fire({
-          title: 'Exito!',
-          text: resp.message,
-          icon: 'success',
-          confirmButtonText: 'Ok',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            this.router.navigateByUrl('/');
+    this.formSubitted = true;
+    console.log(this.loginForm.value);
+    if (this.loginForm.valid) {
+      this.usuarioService.login(this.loginForm.value).subscribe((resp: any) => {
+        if (resp.status) {
+          if (this.loginForm.get('remember').value) {
+            localStorage.setItem('email', this.loginForm.get('email').value);
+          } else {
+            localStorage.setItem('', this.loginForm.get('email').value);
           }
-        });
-      } else {
-        Swal.fire({
-          title: 'Error!',
-          text: resp.message,
-          icon: 'error',
-          confirmButtonText: 'Ok',
-        });
-      }
-    });
+          Swal.fire({
+            title: 'Exito!',
+            text: resp.message,
+            icon: 'success',
+            confirmButtonText: 'Ok',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              this.router.navigateByUrl('/');
+            }
+          });
+        } else {
+          Swal.fire({
+            title: 'Error!',
+            text: resp.message,
+            icon: 'error',
+            confirmButtonText: 'Ok',
+          });
+        }
+      });
+    }
   }
 
   renderButton() {
@@ -94,7 +98,29 @@ export class LoginComponent implements OnInit {
       {},
       (googleUser) => {
         const id_token = googleUser.getAuthResponse().id_token;
-        this.usuarioService.loginGoogle(id_token).subscribe();
+        console.log(id_token);
+
+        this.usuarioService.loginGoogle(id_token).subscribe((resp: any) => {
+          if (resp.status) {
+            Swal.fire({
+              title: 'Exito!',
+              text: resp.message,
+              icon: 'success',
+              confirmButtonText: 'Ok',
+            }).then((result) => {
+              if (result.isConfirmed) {
+                this.router.navigateByUrl('/');
+              }
+            });
+          } else {
+            Swal.fire({
+              title: 'Error!',
+              text: resp.message,
+              icon: 'error',
+              confirmButtonText: 'Ok',
+            });
+          }
+        });
       },
       (error) => {
         alert(JSON.stringify(error, undefined, 2));
@@ -103,7 +129,7 @@ export class LoginComponent implements OnInit {
   }
 
   campoNoValido(campo: string): boolean {
-    if (this.loginForm.get(campo).invalid) {
+    if (this.loginForm.get(campo).invalid && this.formSubitted) {
       return true;
     } else {
       return false;
